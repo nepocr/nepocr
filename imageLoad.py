@@ -1,42 +1,47 @@
+'''
+imageLoad.py
+
+Usage: For loading images from the directory and the subdirectories within the directory. For training, 
+each directory within the root directory acts as a class.
+Thus,
+Folder_Name -> Label for training data in the format [coreIndex_AttachmentIndex]
+
+Files inside Folder_Name -> Training data
+
+'''
+
 import numpy as np
 import os
 import matplotlib.image as mpimg
 
-
+#Convert to grayscale using the dot product method. The grayscale vector [0.299,0.587,0.144] are computed values
 def rgb2gray(rgb):
     return np.dot(rgb[..., :3], [0.299, 0.587, 0.144])
 
-
+#Use Matplotlib to read the image and slice to first thirty values. Returns numpy array
 def loadImageFromFile(fileName):
-    # print fileName;
-    # toRet=[]
     img = mpimg.imread(fileName)[:30]
-
-    # img=img.flatten()
-    # print(np.shape(img))
     return img
-    # gray = rgb2gray(img)
 
-    # plt.imshow(gray, cmap = plt.get_cmap('gray'))
-    # plt.show()
-
-
+#Go inside the rootDir and extract folder name as the label and files inside the folder as training set
 def getImageFromRoot(rootDir):
+    #get list of dirs in rootDirs for getting the label
     dirs = [f for f in os.listdir(rootDir) if os.path.isdir(os.path.join(rootDir, f))]
-    X = []
+    
+    #some inits X->training data, y-> labels, y_indi -> indices for labels
+    X = [] 
     y = []
     y_indi = []
-
-    # core_classes = max([int(core.split("_")[0]) for core in dirs]) + 1
-    # attch_classes = max([int(core.split("_")[1]) for core in dirs]) + 1
 
     for individualDir in dirs:
         indiDirFull = os.path.join(rootDir, individualDir)
         files = [f for f in os.listdir(indiDirFull) if os.path.isfile(
             os.path.join(indiDirFull, f))]
+            
+        #only work with .jpeg files
         for indFile in files:
             if(indFile[-5:] == '.jpeg'):
-                # print indFile
+                
                 X.append(loadImageFromFile(os.path.join(indiDirFull, indFile)))
 
                 indices = individualDir.split("_")
@@ -44,13 +49,10 @@ def getImageFromRoot(rootDir):
                 attchIndex = int(indices[1])
 
                 outVec = np.zeros(len(dirs))
-                # print(coreIndex)
+
                 ind3612 = 12 * coreIndex + attchIndex
                 outVec[ind3612] = 1
-                # outVec[coreIndex] = 1
-                # outVec[core_classes + attchIndex] = 1
 
-                # print (outVec)
                 y_indi.append(ind3612)
                 y.append(outVec)
 
